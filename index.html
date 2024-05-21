@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <title>Lista de Compras</title>
+</head>
+<body>
+    <main>
+        <img src="imagens/lista de compras.png" alt="">
+        <div id="orçamento">
+            <h4>Qual o seu orçamento?</h4>
+            <input type="text" required maxlength="15" id="meuOrçamento" onInput="mascaraMoeda(event);">
+            <button id="envOrçamento">Enviar</button>
+        </div>
+  
+        <div class="listaDeCompras">
+         
+          
+            <input type="text" id="produto">
+            <button id="addItem">Adicionar Item</button>
+            <button id="remove">Remover</button>
+            <button id="botaoLimparLista">Limpar lista</button>
+        
+            <div class="table-container">
+            <table id="tabelaCompras">
+                <thead>
+
+                    <tr>
+                        <th id="mercadoria">Item</th>
+                        <th id="preçoItem">Preço</th>
+                        <th>Quantidade</th>
+                        <th>Excluir</th>
+                    </tr>
+                </thead>
+
+                <div class="scroll">
+                    <tbody id="corpoTabelaCompras">
+                    </tbody>
+                </div>    
+
+            </table>
+        </div>
+            <div id="saldoContainer">
+                <h5 id="saldo">Saldo:</h5>
+                <h5 id="disponivel">Disponivel:</h5>
+            </div>
+        
+    </main>
+
+    <script src="script.js/main.js"></script>
+</body>
+</html>
