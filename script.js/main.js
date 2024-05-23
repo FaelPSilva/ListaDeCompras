@@ -1,22 +1,18 @@
 var mascaraMoeda = (event) => {
     var onlyDigits = event.target.value
-        .split("")
-        .filter(s => /\d/.test(s))
-        .join("")
-        .padStart(3, "0");
+        .replace(/[^\d]/g, "")   // Remove todos os caracteres que não são dígitos
+        .padStart(3, "0");       // Garante que temos pelo menos 3 dígitos
+
     var digitsFloat = onlyDigits.slice(0, -2) + "." + onlyDigits.slice(-2);
-    event.target.value = maskCurrency(digitsFloat);
+    var floatValue = parseFloat(digitsFloat);
+
+    event.target.value = maskCurrency(floatValue);
 };
 
-var maskCurrency = (valor, locale = 'pt-BR', currency = 'BRL') => {
+var maskCurrency = (value) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+};
 
-    var formattedValue = Number(valor).toLocaleString(locale, {
-        style: 'currency',
-        currency,
-        minimumFractionDigits: 2
-    });
-    return formattedValue;
-}
 
 
 function formatarMoeda(valor) {
@@ -48,17 +44,19 @@ var disponivelElemento = document.getElementById('disponivel');
 botaoEnviarOrcamento.addEventListener('click', () => {
     let orcamento = document.getElementById('meuOrçamento').value.trim();
     let saldoElemento = document.getElementById('saldo');
+
     if (orcamento !== '') {
-        console.log(orcamento)
+      //  console.log(orcamento)
         // var valorNumerico = parseFloat(orcamento.replace(/[^\d.,]/g, '').replace(',', '.'));
 
         //var valorFormatado = valorNumerico.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 
         var valorFormatado = formatarMoeda(orcamento);
-        console.log(valorFormatado)
+        //console.log(valorFormatado)
 
         saldoElemento.textContent = `SALDO: ${valorFormatado}`;
         disponivelElemento = document.getElementById('disponivel').textContent = `Disponível: ${valorFormatado}`;
+       
     } else {
         alert('Digite um valor de orçamento válido.');
     }
@@ -80,10 +78,10 @@ botaoAdicionarItem.addEventListener('click', () => {
             listaCompras.push(novoItem);
             inputListaCompras.value = '';
 
-            var inputsPreco = document.querySelectorAll('#corpoTabelaCompras input[type="text"]');
-            inputsPreco.forEach(input => {
-                input.addEventListener('input', mascaraMoeda);
-            });
+            // var inputPreco = document.querySelectorAll('#corpoTabelaCompras input[type="text"]');
+            // inputPreco.forEach(input => {
+            //     input.addEventListener('input', mascaraMoeda);
+            //});
         } else {
             alert('Item já está na lista');
         }
@@ -147,8 +145,10 @@ function adicionarItemATabela(item) {
     });
 
     inputPreco.addEventListener('input', function (event) {
-        mascaraMoeda(event);
-        calcularSaldoDisponivel();
+       //console.log(inputPreco.value)
+       mascaraMoeda(event);
+       //console.log(mascaraMoeda)
+       calcularSaldoDisponivel();
     });
 
     inputQuantidade.addEventListener('input', function (event) {
@@ -177,6 +177,47 @@ function itemJaNaLista(item) {
     return listaCompras.includes(item);
 }
 
+
+
+
+// // function formatarMoeda2(valor) {
+// //     // Verifica se o valor é um número válido
+// //     if (isNaN(valor)) return "Valor inválido";
+
+// //     // Formata o número para o padrão de moeda brasileira
+// //     return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+// }
+
+function calcularSaldoDisponivel() {
+    let disponivelElemento = document.getElementById('disponivel');
+    let saldoElemento = document.querySelector("#saldo").textContent;
+    let inputPreco = document.querySelectorAll('#corpoTabelaCompras input[type="text"]');
+    let inputsQuantidade = document.querySelectorAll('#corpoTabelaCompras input[type="number"]');
+
+    let totalCompra = 0;
+
+    for (let i = 0; i < inputPreco.length; i++) {
+        // Substitui os caracteres não numéricos e converte para número
+        let preco = parseFloat(inputPreco[i].value.replace(/[^\d,]/g, '').replace(',', '.'));
+        if (isNaN(preco)) preco = 0;
+
+        let quantidade = parseInt(inputsQuantidade[i].value) || 0;
+
+        totalCompra += preco * quantidade;
+    }
+
+    // Extrai o valor numérico do saldo, removendo o "R$" e os caracteres não numéricos
+    let saldo = parseFloat(saldoElemento.replace(/[^\d,]/g, '').replace(',', '.'));
+    if (isNaN(saldo)) saldo = 0;
+
+    // Calcula o saldo disponível
+    let disponivel = saldo - totalCompra;
+
+    // Atualiza o elemento com o saldo disponível formatado
+    disponivelElemento.textContent = `Disponível: ${maskCurrency(disponivel)}`;
+    disponivelElemento.style.color = disponivel < 0 ? 'red' : 'green';
+}
+
 botaoLimparLista.addEventListener('click', () => {
     var confirmacao = confirm('Tem certeza que quer limpar a lista?');
     if (confirmacao) {
@@ -185,53 +226,6 @@ botaoLimparLista.addEventListener('click', () => {
         alert('Operação cancelada');
     }
 });
-
-
-function formatarMoeda2(valor) {
-    // Verifica se o valor é um número válido
-    if (isNaN(valor)) return "Valor inválido";
-
-    // Converte para um número de ponto flutuante e divide por 100 para representar corretamente os centavos
-    let valorNumerico = parseFloat(valor) / 100;
-
-    // Formata o número para o padrão de moeda brasileira
-    return valorNumerico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-
-
-function calcularSaldoDisponivel() {
-    let disponivelElemento = document.getElementById('disponivel');
-    let saldoElemento = document.querySelector("#saldo").textContent;
-    var inputsPreco = document.querySelectorAll('#corpoTabelaCompras input[type="text"]');
-    var inputsQuantidade = document.querySelectorAll('#corpoTabelaCompras input[type="number"]');
-
-    let totalCompra = 0;
-
-    for (let i = 0; i < inputsPreco.length; i++) {
-        var preco = parseFloat(inputsPreco[i].value.replace(/[^\d.,]/g, '').replace(',', '.')) * 100;
-        var quantidade = parseInt(inputsQuantidade[i].value) || 0;
-
-        totalCompra += preco * quantidade;
-    }
-
-    let posicaoRS = saldoElemento.indexOf('R$');
-
-
-    let precoNumericoTexto = saldoElemento.substring(posicaoRS + 2).trim();
-
-
-    let saldo = Number(precoNumericoTexto.replace(/[^\d]/g, ''));
-
-
-    console.log(saldo);
-
-
-    var disponivel = saldo - totalCompra;
-
-    disponivelElemento.textContent = `Disponível: ${formatarMoeda2(disponivel)}`;
-    disponivelElemento.style.color = disponivel < 0 ? 'red' : 'green';
-}
 
 function limparLista() {
     corpoTabelaCompras.innerHTML = '';
